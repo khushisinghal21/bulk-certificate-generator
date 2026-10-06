@@ -50,9 +50,12 @@ def generate_certificate(job: Job, certificate_id: UUID) -> CertificateStatus | 
         if not _claim(db, certificate_id):
             return None
         cert = db.get(Certificate, certificate_id)
-        assert cert is not None and cert.recipient_name is not None
+        if cert is None:  # job was deleted after the claim
+            return None
 
         try:
+            if not cert.recipient_name or not cert.verification_code:
+                raise ValueError("certificate row is missing its recipient name or verification code")
             pdf = renderer.render_certificate(
                 renderer.CertificateContent(
                     recipient_name=cert.recipient_name,
@@ -60,8 +63,8 @@ def generate_certificate(job: Job, certificate_id: UUID) -> CertificateStatus | 
                     issuer_name=job.issuer_name,
                     issue_date=job.issue_date,
                     title=job.title,
-                    verification_code=cert.verification_code or "",
-                    verification_url=verification_url(cert.verification_code or ""),
+                    verification_code=cert.verification_code,
+                    verification_url=verification_url(cert.verification_code),
                     grade=cert.grade,
                     description=job.description,
                 )
