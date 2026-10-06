@@ -1,0 +1,21 @@
+[project]
+name = "bulk-certificate-generator"
+version = "1.0.0"
+description = "Backend API for generating certificates in bulk"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning:celery.*", "ignore:Using `httpx` with `starlette.testclient`"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["B008"]  # FastAPI's Depends()/Query() in defaults is idiomatic
+
+[tool.ruff.lint.per-file-ignores]
+"app/api/*.py" = ["B904"]  # HTTPException raised from validation errors on purpose

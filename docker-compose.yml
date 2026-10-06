@@ -1,0 +1,62 @@
+x-app-env: &app-env
+  DATABASE_URL: postgresql+psycopg://certgen:certgen@postgres:5432/certgen
+  CELERY_BROKER_URL: redis://redis:6379/0
+  STORAGE_DIR: /data/certificates
+  PUBLIC_BASE_URL: http://localhost:8000
+  API_KEY: ${API_KEY:-}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: certgen
+      POSTGRES_PASSWORD: certgen
+      POSTGRES_DB: certgen
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U certgen"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    environment: *app-env
+    ports:
+      - "8000:8000"
+    volumes:
+      - certificates:/data/certificates
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  worker:
+    build: .
+    command: celery -A app.worker.celery_app worker --loglevel=info --concurrency=4
+    environment: *app-env
+    volumes:
+      - certificates:/data/certificates
+    depends_on:
+      # The API creates the tables on startup; start workers once it is healthy.
+      api:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  certificates:

@@ -1,0 +1,16 @@
+{
+  "certificate": {
+    "title": "Certificate of Completion",
+    "course_name": "Drone Survey Fundamentals",
+    "issuer_name": "Aereo Academy",
+    "issue_date": "2026-10-06",
+    "description": "Awarded for completing 40 hours of hands-on training in drone survey planning and orthomosaic processing."
+  },
+  "recipients": [
+    { "name": "Ada Lovelace", "email": "ada@example.com", "grade": "A+" },
+    { "name": "Alan Turing", "email": "alan@example.com", "grade": "A" },
+    { "name": "José Müller", "email": "jose@example.com" },
+    { "name": "Grace Hopper", "email": "not-an-email" },
+    { "name": "Ada Lovelace", "email": "ADA@example.com" }
+  ]
+}
